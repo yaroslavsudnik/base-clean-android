@@ -12,8 +12,8 @@ android {
     defaultConfig {
         minSdkVersion 17
         targetSdkVersion 29
-        versionCode 1
-        versionName "0.0.1"
+        versionCode codeVersion.toInteger()
+        versionName nameVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -29,11 +29,15 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    //    implementation "com.github.yaroslavsudnik.base-clean-android:domain:$nameVersion"
+    implementation project(path: ':domain')
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation "androidx.lifecycle:lifecycle-extensions:2.2.0-alpha02"
+    implementation "androidx.lifecycle:lifecycle-runtime:2.2.0-alpha02"
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'

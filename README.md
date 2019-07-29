@@ -1,0 +1,1 @@
+[![](https://jitpack.io/v/yaroslavsudnik/base-clean-android.svg)](https://jitpack.io/#yaroslavsudnik/base-clean-android)
