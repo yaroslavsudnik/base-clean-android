@@ -6,16 +6,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import dev.sudnik.basecleanandroid.presentation.State.DefaultError
 
-abstract class BaseViewModel<StateType>(
-    application: Application
-) : AndroidViewModel(application) {
+abstract class BaseViewModel<StateType>(application: Application) : AndroidViewModel(application) {
+
+    private val reducers: ArrayList<BaseReducer<StateType, out Any>> by lazy {
+        instanceReducers()
+    }
 
     abstract fun unknownError(): StateType
-    abstract val reducers: ArrayList<BaseReducer<StateType, out Any?>>
-
-    private val reducerList by lazy {
-        reducers
-    }
+    abstract fun instanceReducers(): ArrayList<BaseReducer<StateType, out Any>>
 
     val state: LiveData<State<StateType>> get() = _state
 
@@ -30,7 +28,7 @@ abstract class BaseViewModel<StateType>(
     }
 
     init {
-        reducerList.forEach {
+        reducers.forEach {
             it.state = _state
             it.errorState = _errorState
         }

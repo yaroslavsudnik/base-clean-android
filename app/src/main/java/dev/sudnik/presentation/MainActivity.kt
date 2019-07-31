@@ -8,9 +8,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : BaseActivity<MainViewState, MainViewModel>() {
 
-    override fun getLayoutId(): Int {
-        return R.layout.activity_main
-    }
+    override fun getLayoutId(): Int = R.layout.activity_main
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,9 +17,7 @@ class MainActivity : BaseActivity<MainViewState, MainViewModel>() {
         author_bt.setOnClickListener { onLoadAuthorName() }
     }
 
-    override fun instanceViewModel(): MainViewModel {
-        return MainViewModel(application)
-    }
+    override fun instanceViewModel(): MainViewModel = MainViewModel(application)
 
     override fun processDataState(dataState: MainViewState) {
         when (dataState) {

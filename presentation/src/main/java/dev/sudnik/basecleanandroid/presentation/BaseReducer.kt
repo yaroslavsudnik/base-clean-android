@@ -2,15 +2,20 @@ package dev.sudnik.basecleanandroid.presentation
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import dev.sudnik.basecleanandroid.domain.BaseInteractor
 import dev.sudnik.basecleanandroid.domain.DataState
 import dev.sudnik.basecleanandroid.presentation.State.DefaultError
 import dev.sudnik.basecleanandroid.presentation.State.DefaultError.*
 import dev.sudnik.basecleanandroid.presentation.State.Render
 
-abstract class BaseReducer<StateType, DataType> {
+abstract class BaseReducer<StateType, DataType>(interactor: BaseInteractor<DataType, out Any>) {
 
     companion object {
         private val TAG = this::class.java.simpleName
+    }
+
+    init {
+        interactor.dataCallback = { setResult(it) }
     }
 
     abstract fun unknownError(): StateType
@@ -25,16 +30,12 @@ abstract class BaseReducer<StateType, DataType> {
         return unknownError()
     }
 
-    open fun processServerErrorState(data: DataState.ServerError<DataType>): DefaultError<StateType> =
-        when (data) {
-            is DataState.ServerError.AuthError -> DefaultAuthError()
-            is DataState.ServerError.NotFound -> DefaultNotFound()
-            is DataState.ServerError.StrangeError -> DefaultUnknownError()
-            is DataState.ServerError.UnknownError -> DefaultUnknownError()
-        }
-
-    fun request(request: ((DataState<DataType>) -> Unit) -> Unit) {
-        request(::setResult)
+    open fun processServerErrorState(data: DataState.ServerError<DataType>):
+            DefaultError<StateType> = when (data) {
+        is DataState.ServerError.AuthError -> DefaultAuthError()
+        is DataState.ServerError.NotFound -> DefaultNotFound()
+        is DataState.ServerError.StrangeError -> DefaultUnknownError()
+        is DataState.ServerError.UnknownError -> DefaultUnknownError()
     }
 
     private fun stateListObject(data: DataState<DataType>): StateType = when (data) {
@@ -43,14 +44,12 @@ abstract class BaseReducer<StateType, DataType> {
         else -> unknownError()
     }
 
-    private fun setResult(data: DataState<DataType>) {
-        when (data) {
-            is DataState.ServerError -> errorState.value = processServerErrorState(data)
-            else -> state.value = Render(stateListObject(data))
-        }
+    private fun setResult(data: DataState<DataType>) = when (data) {
+        is DataState.ServerError -> errorState.value = processServerErrorState(data)
+        else -> state.value = Render(stateListObject(data))
     }
 
     private fun unknownObject(data: DataType): StateType = throw IllegalStateException(
-        "State object $data has not been determined"
+            "State object $data has not been determined"
     )
 }
