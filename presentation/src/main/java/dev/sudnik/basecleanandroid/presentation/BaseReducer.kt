@@ -5,19 +5,17 @@ import androidx.lifecycle.MutableLiveData
 import dev.sudnik.basecleanandroid.domain.BaseInteractor
 import dev.sudnik.basecleanandroid.domain.DataState
 import dev.sudnik.basecleanandroid.presentation.State.DefaultError
-import dev.sudnik.basecleanandroid.presentation.State.DefaultError.*
+import dev.sudnik.basecleanandroid.presentation.State.DefaultError.DefaultAuthError
+import dev.sudnik.basecleanandroid.presentation.State.DefaultError.DefaultUnknownError
 import dev.sudnik.basecleanandroid.presentation.State.Render
 
-abstract class BaseReducer<StateType, DataType>(interactor: BaseInteractor<DataType, out Any>) {
+abstract class BaseReducer<StateType, DataType> {
 
-    companion object {
-        private val TAG = this::class.java.simpleName
+    val interactor: BaseInteractor<DataType, out Any> by lazy {
+        instanceInteractor()
     }
 
-    init {
-        interactor.dataCallback = { setResult(it) }
-    }
-
+    abstract fun instanceInteractor(): BaseInteractor<DataType, out Any>
     abstract fun unknownError(): StateType
 
     var state = MutableLiveData<State<StateType>>()
@@ -30,26 +28,32 @@ abstract class BaseReducer<StateType, DataType>(interactor: BaseInteractor<DataT
         return unknownError()
     }
 
-    open fun processServerErrorState(data: DataState.ServerError<DataType>):
-            DefaultError<StateType> = when (data) {
-        is DataState.ServerError.AuthError -> DefaultAuthError()
-        is DataState.ServerError.NotFound -> DefaultNotFound()
-        is DataState.ServerError.StrangeError -> DefaultUnknownError()
-        is DataState.ServerError.UnknownError -> DefaultUnknownError()
-    }
-
     private fun stateListObject(data: DataState<DataType>): StateType = when (data) {
         is DataState.OnSuccess -> processDataState(data.data)
         is DataState.OnError -> processErrorState(data.error)
         else -> unknownError()
     }
 
-    private fun setResult(data: DataState<DataType>) = when (data) {
-        is DataState.ServerError -> errorState.value = processServerErrorState(data)
-        else -> state.value = Render(stateListObject(data))
+    private fun processResult(data: DataState<DataType>) = when (data) {
+        is DataState.OnError -> errorState.postValue(processServerErrorState(data))
+        else -> state.postValue(Render(stateListObject(data)))
     }
+
+    open fun processServerErrorState(data: DataState<DataType>): DefaultError<StateType> =
+            when (data) {
+                is DataState.ServerError.AuthError -> DefaultAuthError()
+                else -> DefaultUnknownError()
+            }
 
     private fun unknownObject(data: DataType): StateType = throw IllegalStateException(
             "State object $data has not been determined"
     )
+
+    init {
+        interactor.dataCallback = { processResult(it) }
+    }
+
+    companion object {
+        private val TAG = this::class.java.simpleName
+    }
 }

@@ -1,14 +1,13 @@
 package dev.sudnik.presentation
 
-import dev.sudnik.basecleanandroid.domain.DataState
 import dev.sudnik.basecleanandroid.presentation.BaseReducer
-import dev.sudnik.basecleanandroid.presentation.State.DefaultError
-import dev.sudnik.basecleanandroid.presentation.State.DefaultError.ServerToNativeError
+import dev.sudnik.data.RepositoryImpl
 import dev.sudnik.domain.interactor.LoadUsersInteractor
 import dev.sudnik.domain.state.UserDataState
 
-class UserReducer(private val interactor: LoadUsersInteractor) :
-        BaseReducer<MainViewState, UserDataState>(interactor) {
+class UserReducer : BaseReducer<MainViewState, UserDataState>() {
+
+    override fun instanceInteractor() = LoadUsersInteractor(RepositoryImpl())
 
     override fun processDataState(data: UserDataState): MainViewState = when (data) {
         is UserDataState.UserListLoaded -> MainViewState.ShowName(data.users[0].name)
@@ -20,16 +19,10 @@ class UserReducer(private val interactor: LoadUsersInteractor) :
         else -> super.processErrorState(error)
     }
 
-    override fun processServerErrorState(data: DataState.ServerError<UserDataState>):
-            DefaultError<MainViewState> = when (data) {
-        is DataState.ServerError.NotFound ->
-            ServerToNativeError(MainViewState.OnError("custom auth nativeError"))
-        else -> super.processServerErrorState(data)
-    }
-
     override fun unknownError(): MainViewState = MainViewState.OnError("user name loading error")
 
-    fun getUserName() = interactor.getUserList()
+    fun getUserName(groupId: String) = (interactor as LoadUsersInteractor).getUserList(groupId)
 
-    fun getUserSurname() = interactor.getUserSurname()
+    fun getUserSurname(groupId: String) =
+        (interactor as LoadUsersInteractor).getUserSurname(groupId)
 }

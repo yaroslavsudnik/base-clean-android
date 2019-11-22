@@ -12,7 +12,6 @@ abstract class BaseViewModel<StateType>(application: Application) : AndroidViewM
         instanceReducers()
     }
 
-    abstract fun unknownError(): StateType
     abstract fun instanceReducers(): ArrayList<BaseReducer<StateType, out Any>>
 
     val state: LiveData<State<StateType>> get() = _state

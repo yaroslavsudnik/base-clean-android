@@ -5,7 +5,6 @@ sealed class State<out T> {
     class Render<T>(val dataState: T) : State<T>()
     sealed class DefaultError<T> : State<T>() {
         class DefaultAuthError<T> : DefaultError<T>()
-        class DefaultNotFound<T> : DefaultError<T>()
         class DefaultUnknownError<T> : DefaultError<T>()
         class ServerToNativeError<T>(val nativeError: T) : DefaultError<T>()
     }
