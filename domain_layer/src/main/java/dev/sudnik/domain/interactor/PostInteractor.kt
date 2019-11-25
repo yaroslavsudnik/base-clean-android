@@ -7,17 +7,18 @@ import dev.sudnik.domain.repository.Repository
 import dev.sudnik.domain.state.PostDataState
 
 class PostInteractor(private val repository: Repository) :
-        BaseInteractor<PostDataState, PostEntity>() {
+    BaseInteractor<PostDataState, PostEntity>() {
 
-    fun getPostList() = call(PostDataState.PostLoaded.create()) { repository.getPostList(it) }
+    fun getPost(postId: String) =
+        call(PostDataState.PostLoaded.create()) { repository.getPost(postId, it) }
 
-    override fun processSuccessState(clazz: PostDataState, data: PostEntity):
-            PostDataState = when (clazz) {
-        is PostDataState.PostLoaded -> PostDataState.PostLoaded(data.post)
-        else -> throw IllegalArgumentException(
+    override fun processSuccessState(clazz: PostDataState, data: PostEntity): PostDataState =
+        when (clazz) {
+            is PostDataState.PostLoaded -> PostDataState.PostLoaded(data.post)
+            else -> throw IllegalArgumentException(
                 "State object $clazz has not been determined"
-        )
-    }
+            )
+        }
 
     override fun processErrorState(error: ErrorResponse): PostDataState = PostDataState.PostError
 }
