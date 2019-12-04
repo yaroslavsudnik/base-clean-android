@@ -2,7 +2,6 @@ package dev.sudnik.basecleanandroid.data
 
 import dev.sudnik.basecleanandroid.domain.ErrorResponse
 import dev.sudnik.basecleanandroid.domain.RepositoryResponse
-import kotlinx.coroutines.*
 import retrofit2.Response
 import retrofit2.Retrofit
 
@@ -15,8 +14,6 @@ abstract class BaseDataSource<EntityType, DTOType, ApiType>(
         retrofit.create(apiClazz)
     }
 
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
     protected abstract val apiClazz: Class<ApiType>
     protected abstract val successDataResponse: (DTOType) -> Unit
     protected abstract fun successDomainResponse(dto: DTOType): EntityType
@@ -27,20 +24,15 @@ abstract class BaseDataSource<EntityType, DTOType, ApiType>(
     protected open fun errorDomainResponse(errorResponse: Response<DTOType>): ErrorResponse =
         ErrorResponse(errorResponse.errorBody().toString(), errorResponse.code())
 
-    protected fun loadData(request: suspend () -> Response<DTOType>) {
-        scope.launch {
-            try {
-                withContext(Dispatchers.Default) {
-                    request().apply {
-                        body()?.let {
-                            successDataResponse(it)
-                            domainResponse.onSuccess(successDomainResponse(it))
-                        } ?: domainResponse.onError(errorDomainResponse(this))
-                    }
-                }
-            } catch (e: Exception) {
-                domainResponse.onError(errorDataResponse(e))
+    protected suspend fun loadData(request: suspend () -> Response<DTOType>) =
+        try {
+            request().apply {
+                body()?.let {
+                    successDataResponse(it)
+                    domainResponse.onSuccess(successDomainResponse(it))
+                } ?: domainResponse.onError(errorDomainResponse(this))
             }
+        } catch (e: Exception) {
+            domainResponse.onError(errorDataResponse(e))
         }
-    }
 }

@@ -8,9 +8,10 @@ import dev.sudnik.domain.entity.PostEntity
 class PostDataSource(response: RepositoryResponse<PostEntity>) :
     BaseDataSource<PostEntity, PostDTO, PostApi>(
         response,
-        RetrofitHelper("site.com/api").retrofit
+        RetrofitHelper(URI).retrofit
     ) {
-    override val apiClazz: Class<PostApi> = PostApi::class.java
+
+    suspend fun getPost(postId: String) = loadData { api.post(postId) }
 
     override val successDataResponse: (PostDTO) -> Unit = {
         println(it.toString())
@@ -19,5 +20,9 @@ class PostDataSource(response: RepositoryResponse<PostEntity>) :
     override fun successDomainResponse(dto: PostDTO) =
         PostEntity(PostMapper().transformToPost(dto))
 
-    fun getPost(postId: String) = loadData { api.post(postId) }
+    override val apiClazz: Class<PostApi> = PostApi::class.java
+
+    companion object {
+        private const val URI = "site.com/api"
+    }
 }
